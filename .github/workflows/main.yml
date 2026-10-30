@@ -30,3 +30,27 @@ jobs:
         with:
           name: debugoutline-jar
           path: build/libs/*.jar
+
+      - name: Dump Minecraft API signatures
+        if: always()
+        run: |
+          CP=$(find /home/runner/.gradle -name "*.jar" | tr '\n' ':')
+          mkdir -p api-dump
+          for c in \
+            net.minecraft.client.render.RenderLayer \
+            'net.minecraft.client.render.RenderLayer$MultiPhaseParameters' \
+            net.minecraft.client.gl.RenderPipelines \
+            com.mojang.blaze3d.pipeline.RenderPipeline \
+            'com.mojang.blaze3d.pipeline.RenderPipeline$Builder' \
+            com.mojang.blaze3d.platform.DepthTestFunction \
+            com.mojang.blaze3d.pipeline.BlendFunction; do
+            echo "=== $c ===" >> api-dump/api.txt
+            javap -p -cp "$CP" "$c" >> api-dump/api.txt 2>&1 || echo "introuvable" >> api-dump/api.txt
+          done
+
+      - name: Upload API dump
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-dump
+          path: api-dump/api.txt
