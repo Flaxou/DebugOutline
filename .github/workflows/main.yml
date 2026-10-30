@@ -16,14 +16,14 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Install Gradle 8.10
+      - name: Install Gradle 8.12
         run: |
-          wget -q https://services.gradle.org/distributions/gradle-8.10-bin.zip -O /tmp/gradle.zip
+          wget -q https://services.gradle.org/distributions/gradle-8.12-bin.zip -O /tmp/gradle.zip
           unzip -q /tmp/gradle.zip -d /opt
-          /opt/gradle-8.10/bin/gradle --version
+          /opt/gradle-8.12/bin/gradle --version
 
       - name: Build
-        run: /opt/gradle-8.10/bin/gradle build --no-daemon
+        run: /opt/gradle-8.12/bin/gradle build --no-daemon
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
