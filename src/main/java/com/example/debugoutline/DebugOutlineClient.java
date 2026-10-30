@@ -18,7 +18,7 @@ import java.util.List;
 public class DebugOutlineClient implements ClientModInitializer {
 
     /** Rayon de scan : cube de (2 * RADIUS) blocs de côté centré sur le joueur. */
-    private static final int RADIUS = 32;
+    private static final int RADIUS = 512;
 
     /** Rescan toutes les 10 ticks (0,5 s). Le résultat est mis en cache entre les scans. */
     private static final int SCAN_INTERVAL_TICKS = 10;
