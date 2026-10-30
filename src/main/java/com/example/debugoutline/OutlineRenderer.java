@@ -3,8 +3,11 @@ package com.example.debugoutline;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -14,12 +17,29 @@ import org.joml.Matrix4f;
 import java.util.List;
 
 /**
- * Dessine les contours oranges des blocs ciblés.
- * Version de base : le test de profondeur est actif (le contour est caché par les murs).
+ * Contours oranges visibles à travers les blocs : la couche de rendu
+ * désactive le test de profondeur (ALWAYS_DEPTH_TEST).
  */
 public final class OutlineRenderer {
 
     private static final float R = 1.0f, G = 0.5f, B = 0.0f, A = 1.0f;
+
+    /**
+     * Couche personnalisée : lignes, sans test de profondeur, mélange translucide, sans culling.
+     * RenderLayer.of est rendu accessible par debugoutline.accesswidener.
+     */
+    private static final RenderLayer XRAY_LAYER = RenderLayer.of(
+            "debugoutline_xray",
+            VertexFormats.LINES,
+            VertexFormat.DrawMode.LINES,
+            1536,
+            RenderLayer.MultiPhaseParameters.builder()
+                    .program(RenderPhase.LINES_PROGRAM)
+                    .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)
+                    .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
+                    .cull(RenderPhase.DISABLE_CULLING)
+                    .build(false)
+    );
 
     private OutlineRenderer() {}
 
@@ -33,11 +53,9 @@ public final class OutlineRenderer {
 
         VertexConsumerProvider.Immediate consumers =
                 MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
-        RenderLayer layer = RenderLayer.getLines();
-        VertexConsumer lines = consumers.getBuffer(layer);
+        VertexConsumer lines = consumers.getBuffer(XRAY_LAYER);
 
         matrices.push();
-        // Coordonnées monde -> relatives à la caméra
         matrices.translate(-cam.x, -cam.y, -cam.z);
         Matrix4f matrix = matrices.peek().getPositionMatrix();
 
@@ -46,7 +64,7 @@ public final class OutlineRenderer {
         }
 
         matrices.pop();
-        consumers.draw(layer);
+        consumers.draw(XRAY_LAYER);
     }
 
     /** Ajoute les 12 arêtes de la boîte. */
